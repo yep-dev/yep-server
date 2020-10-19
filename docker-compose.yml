@@ -74,6 +74,8 @@ services:
     # image: rabbitmq:3-management
     #
     # You also have to change the flower command
+    logging:
+      driver: none
   
   flower:
     image: mher/flower
@@ -138,6 +140,14 @@ services:
       dockerfile: celeryworker.dockerfile
       args:
         INSTALL_DEV: ${INSTALL_DEV-false}
+
+  redis:
+    image: "redis:alpine"
+
+    command: redis-server
+
+    ports:
+     - "6379:6379"
 
 networks:
   traefik-public:
