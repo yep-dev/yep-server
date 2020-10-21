@@ -27,18 +27,16 @@ def square():
 
 def reverse_gradient(gradient, linespace):
     return (
-        linespace[0]
-        + 2
-        * np.c_[
-            np.r_[0, gradient[1:-1:2].cumsum()],
-            gradient[::2].cumsum() - gradient[0] / 2,
-        ].ravel()[: len(gradient)]
+            linespace[0]
+            + 2
+            * np.c_[
+                  np.r_[0, gradient[1:-1:2].cumsum()],
+                  gradient[::2].cumsum() - gradient[0] / 2,
+              ].ravel()[: len(gradient)]
     )
 
 
-@router.post("/")
-async def wave(request: Request, spec: WaveSpec):
-    redis = request.app.extra["redis"]
+async def build_wave(spec):
     types = {"sine": sine, "square": square}
     original_positions = types.get(spec.type, lambda: None)()
     movements = np.gradient(original_positions)
@@ -46,12 +44,26 @@ async def wave(request: Request, spec: WaveSpec):
 
     processed_positions = reverse_gradient(movements, original_positions)
 
+    return {
+        "originalPositions": original_positions.tolist()[:-1],
+        "processedPositions": processed_positions.tolist()[:-1],
+        "movements": movements.tolist()[:-1],
+    }
+
+
+@router.post('/get')
+async def wave(request: Request, spec: WaveSpec):
+    data = await build_wave(spec)
+    return data
+
+
+@router.post("/run")
+async def wave(request: Request, spec: WaveSpec):
+    data = await build_wave(spec)
+
+    redis = request.app.extra["redis"]
     redis.xadd(
         commands.command_all,
-        {"type": commands.loop_wave, "data": json.dumps(movements.tolist()[:-1])},
+        {"type": commands.loop_wave, "data": json.dumps(data['movements'])},
     )
-    return dict(
-        originalPositions=original_positions.tolist()[:-1],
-        processedPositions=processed_positions.tolist()[:-1],
-        movements=movements.tolist(),
-    )
+    return {'status': 'success'}

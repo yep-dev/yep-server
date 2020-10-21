@@ -17,9 +17,9 @@ Message = Tuple[bytes, bytes, Dict[bytes, bytes]]
 
 
 async def read_from_stream(
-    redis: aioredis.Redis, stream: str, latest_id: str = None
+        redis: aioredis.Redis, stream: str, latest_id: str = None
 ) -> List[Message]:
-    timeout_ms = 60 * 1000
+    timeout_ms = 24 * 60 * 60 * 1000
 
     # Blocking read for every message added after latest_id, using XREAD
     if latest_id is not None:
@@ -53,6 +53,7 @@ async def ws_producer(ws: WebSocket, redis, stream):
         try:
             # messages = await read_from_stream(redis, stream, to_read_id, past_ms, last_n)
             messages = await read_from_stream(redis, stream, to_read_id)
+            print('priducer msg', messages)
 
         except Exception as e:
             logger.info(f"read timed out for stream {stream}, {e}")
@@ -68,18 +69,18 @@ async def ws_producer(ws: WebSocket, redis, stream):
 
         # Prepare messages (message_id and JSON-serializable payload dict)
         prepared_messages = []
-        for msg in messages:
-            latest_id = msg[1].decode("utf-8")
-            payload = {k.decode("utf-8"): v.decode("utf-8") for k, v in msg[2].items()}
-            prepared_messages.append({"message_id": latest_id, **payload})
+        if messages:
+            for msg in messages:
+                latest_id = msg[1].decode("utf-8")
+                payload = {k.decode("utf-8"): v.decode("utf-8") for k, v in msg[2].items()}
+                prepared_messages.append({"message_id": latest_id, **payload})
 
-        # Send messages to client, handling (ConnectionClosed, WebSocketDisconnect) in case client has disconnected
-        try:
-            print(prepared_messages)
-            await ws.send_json(prepared_messages)
-        except (ConnectionClosed, WebSocketDisconnect):
-            logger.info(f"{ws} disconnected from stream {stream}")
-            return
+            # Send messages to client, handling (ConnectionClosed, WebSocketDisconnect) in case client has disconnected
+            try:
+                await ws.send_json(prepared_messages)
+            except (ConnectionClosed, WebSocketDisconnect):
+                logger.info(f"{ws} disconnected from stream {stream}")
+                return
 
 
 async def ws_consumer(ws, redis):
@@ -89,7 +90,6 @@ async def ws_consumer(ws, redis):
             if message:
                 data = json.loads(message)
                 stream = data.pop("stream")
-                print("RECEIVED", message)
                 await redis.xadd(stream, data)
         except Exception as e:
             print(e)
@@ -98,20 +98,23 @@ async def ws_consumer(ws, redis):
 
 @router.websocket("/{stream}")
 async def proxy_stream(
-    ws: WebSocket,
-    stream: str,
-    # latest_id: str = None,
-    # past_ms: int = None,
-    # last_n: int = None,
-    # max_frequency: flo None,
+        ws: WebSocket,
+        stream: str,
+        # latest_id: str = None,
+        # past_ms: int = None,
+        # last_n: int = None,
+        # max_frequency: flo None,
 ):
     await ws.accept()
-    redis = await aioredis.create_redis_pool(
+    redis_consumer = await aioredis.create_redis_pool(
+        "redis://local.dockertoolbox.tiangolo.com:6379"
+    )
+    redis_producer = await aioredis.create_redis_pool(
         "redis://local.dockertoolbox.tiangolo.com:6379"
     )
 
-    ws_consumer_task = ws_consumer(ws, redis)
-    ws_producer_task = ws_producer(ws, redis, stream)
+    ws_consumer_task = ws_consumer(ws, redis_consumer)
+    ws_producer_task = ws_producer(ws, redis_producer, stream)
 
     done, pending = await asyncio.wait(
         [ws_consumer_task, ws_producer_task],
@@ -122,5 +125,7 @@ async def proxy_stream(
         logger.debug(f"Canceling task: {task}")
         task.cancel()
 
-    redis.close()
-    await redis.wait_closed()
+    redis_consumer.close()
+    redis_producer.close()
+    await redis_consumer.wait_closed()
+    await redis_producer.wait_closed()
