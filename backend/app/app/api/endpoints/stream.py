@@ -53,7 +53,6 @@ async def ws_producer(ws: WebSocket, redis, stream):
         try:
             # messages = await read_from_stream(redis, stream, to_read_id, past_ms, last_n)
             messages = await read_from_stream(redis, stream, to_read_id)
-            print('priducer msg', messages)
 
         except Exception as e:
             logger.info(f"read timed out for stream {stream}, {e}")
