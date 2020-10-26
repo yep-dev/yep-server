@@ -48,10 +48,25 @@ def reverse_gradient(gradient, linespace):
 async def build_wave(spec):
     types = {"sine": sine, "square": square}
     original_positions = types.get(spec.type, lambda: None)(spec.duration)
+    min_index = original_positions.argmin()
+    original_positions = np.roll(original_positions[:-1], -min_index)
     movements = np.gradient(original_positions)
     # process movements here
 
     processed_positions = reverse_gradient(movements, original_positions)
+
+    negative_values = 0
+    positive_values = 0
+
+    for item in movements:
+        if item < 0:
+            negative_values += -item
+        else:
+            positive_values += item
+            
+    print(positive_values, negative_values)
+    print(original_positions.min())
+    print(original_positions.max())
 
     return {
         "originalPositions": original_positions.tolist()[:-1],
