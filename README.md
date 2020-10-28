@@ -20,7 +20,7 @@ Server for the smart fucking machine [video](https://twitter.com/yepdev_/status/
 
 ## Architecture
 
-This is just Raspberry Pi code, it needs other modules to function:
+This is just server code, it needs other modules to function:
 
 - [yep-machine](https://github.com/yep-dev/yep-machine) - controlling stepper motor and other hardware
 - [yep-app](https://github.com/yep-dev/yep-app) - UI, control panel
