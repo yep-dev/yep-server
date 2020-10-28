@@ -24,6 +24,7 @@ def sine(duration):
 
 
 def square(duration):
+    # todo: implement wave smoothing based on max motor frequency to avoid overloading it here
     def process_point(point, points_number):
         if points_number / 4 <= point < points_number / 4 * 3:
             return 1
@@ -54,19 +55,6 @@ async def build_wave(spec):
     # process movements here
 
     processed_positions = reverse_gradient(movements, original_positions)
-
-    negative_values = 0
-    positive_values = 0
-
-    for item in movements:
-        if item < 0:
-            negative_values += -item
-        else:
-            positive_values += item
-            
-    print(positive_values, negative_values)
-    print(original_positions.min())
-    print(original_positions.max())
 
     return {
         "originalPositions": original_positions.tolist()[:-1],
