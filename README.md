@@ -1,6 +1,6 @@
 # Yep Server
 
-Server for smart fucking machine (in progress) [video](https://twitter.com/yepdev_/status/1321421143283294208)
+Server for the smart fucking machine [video](https://twitter.com/yepdev_/status/1321421143283294208)
 
 ## Project features
 
