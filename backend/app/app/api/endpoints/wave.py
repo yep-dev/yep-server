@@ -1,12 +1,11 @@
 import json
 
-from app.streams import commands
+import numpy as np
 from fastapi import APIRouter
 from pydantic import BaseModel
-
-import numpy as np
-from scipy import signal
 from starlette.requests import Request
+
+from app.streams import commands
 
 router = APIRouter()
 
@@ -30,19 +29,20 @@ def square(duration):
             return 1
         return -1
 
-    linespace = np.linspace(0, int(RESOLUTION * duration), int(RESOLUTION * duration),
-                            endpoint=True)
+    linespace = np.linspace(
+        0, int(RESOLUTION * duration), int(RESOLUTION * duration), endpoint=True
+    )
     return np.array([process_point(i, int(RESOLUTION * duration)) for i in linespace])
 
 
 def reverse_gradient(gradient, linespace):
     return (
-            linespace[0]
-            + 2
-            * np.c_[
-                  np.r_[0, gradient[1:-1:2].cumsum()],
-                  gradient[::2].cumsum() - gradient[0] / 2,
-              ].ravel()[: len(gradient)]
+        linespace[0]
+        + 2
+        * np.c_[
+            np.r_[0, gradient[1:-1:2].cumsum()],
+            gradient[::2].cumsum() - gradient[0] / 2,
+        ].ravel()[: len(gradient)]
     )
 
 
@@ -63,7 +63,7 @@ async def build_wave(spec):
     }
 
 
-@router.post('/get')
+@router.post("/get")
 async def wave(request: Request, spec: WaveSpec):
     # todo: send flag if wave doesn't start at 0 to block running it
     data = await build_wave(spec)
@@ -78,6 +78,6 @@ async def wave(request: Request, spec: WaveSpec):
     redis = request.app.extra["redis"]
     redis.xadd(
         commands.command_all,
-        {"type": commands.loop_wave, "data": json.dumps(data['movements'])},
+        {"type": commands.loop_wave, "data": json.dumps(data["movements"])},
     )
-    return {'status': 'success'}
+    return {"status": "success"}

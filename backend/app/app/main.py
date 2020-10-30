@@ -25,9 +25,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.on_event("startup")
 async def handle_startup():
     try:
-        redis = await aioredis.create_redis(
-            "redis://local.dockertoolbox.tiangolo.com:6379"
-        )
+        redis = await aioredis.create_redis(settings.REDIS_URL)
         # logger.info(f"Connected to Redis")
         app.extra["redis"] = redis
     except ConnectionRefusedError:

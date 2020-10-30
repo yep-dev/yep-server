@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER_PASSWORD: str
     USERS_OPEN_REGISTRATION: bool = False
 
+    REDIS_URL: str
+
     class Config:
         case_sensitive = True
 

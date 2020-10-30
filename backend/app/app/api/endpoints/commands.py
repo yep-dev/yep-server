@@ -1,6 +1,7 @@
-from app.streams import commands
 from fastapi import APIRouter
 from starlette.requests import Request
+
+from app.streams import commands
 
 router = APIRouter()
 

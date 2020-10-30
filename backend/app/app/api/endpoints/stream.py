@@ -1,12 +1,14 @@
 import asyncio
 import json
-from typing import List, Tuple, Dict
 import logging
+from typing import Dict, List, Tuple
 
 import aioredis
 from fastapi import APIRouter
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
+
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -17,7 +19,7 @@ Message = Tuple[bytes, bytes, Dict[bytes, bytes]]
 
 
 async def read_from_stream(
-        redis: aioredis.Redis, stream: str, latest_id: str = None
+    redis: aioredis.Redis, stream: str, latest_id: str = None
 ) -> List[Message]:
     timeout_ms = 24 * 60 * 60 * 1000
 
@@ -71,7 +73,9 @@ async def ws_producer(ws: WebSocket, redis, stream):
         if messages:
             for msg in messages:
                 latest_id = msg[1].decode("utf-8")
-                payload = {k.decode("utf-8"): v.decode("utf-8") for k, v in msg[2].items()}
+                payload = {
+                    k.decode("utf-8"): v.decode("utf-8") for k, v in msg[2].items()
+                }
                 prepared_messages.append({"message_id": latest_id, **payload})
 
             # Send messages to client, handling (ConnectionClosed, WebSocketDisconnect) in case client has disconnected
@@ -97,27 +101,22 @@ async def ws_consumer(ws, redis):
 
 @router.websocket("/{stream}")
 async def proxy_stream(
-        ws: WebSocket,
-        stream: str,
-        # latest_id: str = None,
-        # past_ms: int = None,
-        # last_n: int = None,
-        # max_frequency: flo None,
+    ws: WebSocket,
+    stream: str,
+    # latest_id: str = None,
+    # past_ms: int = None,
+    # last_n: int = None,
+    # max_frequency: flo None,
 ):
     await ws.accept()
-    redis_consumer = await aioredis.create_redis_pool(
-        "redis://local.dockertoolbox.tiangolo.com:6379"
-    )
-    redis_producer = await aioredis.create_redis_pool(
-        "redis://local.dockertoolbox.tiangolo.com:6379"
-    )
+    redis_consumer = await aioredis.create_redis_pool(settings.REDIS_URL)
+    redis_producer = await aioredis.create_redis_pool(settings.REDIS_URL)
 
     ws_consumer_task = ws_consumer(ws, redis_consumer)
     ws_producer_task = ws_producer(ws, redis_producer, stream)
 
     done, pending = await asyncio.wait(
-        [ws_consumer_task, ws_producer_task],
-        return_when=asyncio.FIRST_COMPLETED,
+        [ws_consumer_task, ws_producer_task], return_when=asyncio.FIRST_COMPLETED,
     )
 
     for task in pending:
