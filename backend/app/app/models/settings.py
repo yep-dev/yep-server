@@ -18,4 +18,5 @@ class MachineThrustSettings(Base):
     stroke_limit = Column(Integer)
     padding_steps = Column(Integer)
 
+    # calibration
     max_steps = Column(Integer)

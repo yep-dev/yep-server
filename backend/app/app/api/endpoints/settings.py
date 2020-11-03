@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -34,7 +34,9 @@ def update_item(
     db: Session = Depends(deps.get_db),
     model: str,
     id: int,
-    data: schemas.MachineThrustSettings,
+    data: Union[
+        schemas.MachineThrustSettings, schemas.MachineThrustCalibrationSettings
+    ],
 ) -> Any:
     item = crud.settings.get(db=db, model=model, id=id)
     if not item:
