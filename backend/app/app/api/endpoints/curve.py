@@ -4,10 +4,9 @@ from fastapi import APIRouter
 from scipy.interpolate import make_interp_spline
 
 import numpy as np
+from pydantic import BaseModel
 
 router = APIRouter()
-
-from pydantic import BaseModel
 
 
 class Data(BaseModel):
@@ -16,8 +15,8 @@ class Data(BaseModel):
 
 @router.post("/")
 def post_settings_curve(
-    *,
-    data: Data,
+        *,
+        data: Data,
 ) -> Any:
     print(data)
     x = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
