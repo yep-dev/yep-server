@@ -38,12 +38,12 @@ def square(duration):
 
 def reverse_gradient(gradient, linespace):
     return (
-            linespace[0]
-            + 2
-            * np.c_[
-                  np.r_[0, gradient[1:-1:2].cumsum()],
-                  gradient[::2].cumsum() - gradient[0] / 2,
-              ].ravel()[: len(gradient)]
+        linespace[0]
+        + 2
+        * np.c_[
+            np.r_[0, gradient[1:-1:2].cumsum()],
+            gradient[::2].cumsum() - gradient[0] / 2,
+        ].ravel()[: len(gradient)]
     )
 
 
@@ -79,7 +79,12 @@ async def wave(request: Request, spec: WaveSpec):
     redis = request.app.extra["redis"]
     redis.xadd(
         commands.command_all,
-        {"type": commands.loop_wave, "time": time.time(),
-         "data": json.dumps(data["movements"])},
+        {
+            "type": commands.loop_wave,
+            "time": time.time(),
+            "data": json.dumps(
+                [(point + 1) / 2 for point in data["originalPositions"]]
+            ),
+        },
     )
     return {"status": "success"}

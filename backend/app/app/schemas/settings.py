@@ -10,18 +10,12 @@ class StepperSettings(BaseModel):
     wave_resolution: int
 
 
-class MachineThrustUiSettings(StepperSettings):
+class MachineThrustSettingsEdit(StepperSettings):
     stroke_length: int
     stroke_limit: int
     padding_steps: int
 
+
+class MachineThrustSettingsDisplay(MachineThrustSettingsEdit):
+    id: str
     max_steps: Optional[int]
-
-
-class MachineThrustCalibrationSettings(BaseModel):
-    max_steps: int
-
-
-class MachineThrustSettings(MachineThrustUiSettings, MachineThrustCalibrationSettings):
-    class Config:
-        orm_mode = True

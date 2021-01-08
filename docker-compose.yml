@@ -24,6 +24,8 @@ services:
       - --log
       # Enable the Dashboard and API
       - --api
+    logging:
+      driver: none
     deploy:
       placement:
         constraints:
@@ -152,6 +154,12 @@ services:
     volumes:
       - $PWD/redis-data:/var/lib/redis
       - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+      
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017 # remove this line on prod
 
 networks:
   traefik-public:

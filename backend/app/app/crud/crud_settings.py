@@ -1,41 +1,38 @@
+from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import Session
 
-from app.models.settings import MachineThrustSettings
+from app.database.core import db_client
 
-MODELS_MAPPING = {"machine-thrust": MachineThrustSettings}
+database = db_client.settings
+settings = database.get_collection("settings_collection")
+# MODELS_MAPPING = {"machine-thrust": MachineThrustSettings}
 
 
 class CRUDSettings:
-    def get(self, db: Session, model: str, id: int):
-        model = MODELS_MAPPING[model]
-        return db.query(model).filter(model.id == id).first()
+    async def get(self):
+        settings_ = []
+        async for setting in settings.find():
+            settings_.append(setting)
+        return settings_
 
-    def create(self, db, model: str, data):
-        model = MODELS_MAPPING[model]
+    async def create(self, model, data):
+        # model = MODELS_MAPPING[model]
         data = jsonable_encoder(data)
-        db_obj = model(**data)
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+        await settings.insert_one(data)
+        return data
 
-    def update(self, db: Session, *, db_obj, data):
-        obj_data = jsonable_encoder(db_obj)
-
-        if isinstance(data, dict):
-            update_data = data
-        else:
-            update_data = data.dict(exclude_unset=True)
-
-        for field in obj_data:
-            if field in update_data:
-                setattr(db_obj, field, update_data[field])
-
-        db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
-        return db_obj
+    async def update(self, model, id: str, data):
+        item = settings.find_one({"_id": ObjectId(id)})
+        if item:
+            data = jsonable_encoder(data)
+            print(data)
+            updated_item = await settings.update_one(
+                {"_id": ObjectId(id)}, {"$set": data}
+            )
+            print(updated_item.modified_count)
+            if updated_item:
+                return True
+        return False
 
 
-settings = CRUDSettings()
+settings_crud = CRUDSettings()
