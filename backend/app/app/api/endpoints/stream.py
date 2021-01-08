@@ -116,7 +116,8 @@ async def proxy_stream(
     ws_producer_task = ws_producer(ws, redis_producer, stream)
 
     done, pending = await asyncio.wait(
-        [ws_consumer_task, ws_producer_task], return_when=asyncio.FIRST_COMPLETED,
+        [ws_consumer_task, ws_producer_task],
+        return_when=asyncio.FIRST_COMPLETED,
     )
 
     for task in pending:
