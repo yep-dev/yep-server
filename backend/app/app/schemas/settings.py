@@ -11,11 +11,19 @@ class StepperSettings(BaseModel):
 
 
 class MachineThrustSettingsEdit(StepperSettings):
-    stroke_length: int
-    stroke_limit: int
-    padding_steps: int
+    name: Optional[str]
+    microsteps_per_rev: Optional[int]
+    wave_resolution: Optional[int]
+
+    stroke_length: Optional[int]
+    stroke_limit: Optional[int]
+    padding_steps: Optional[int]
+    max_steps: Optional[int]
 
 
 class MachineThrustSettingsDisplay(MachineThrustSettingsEdit):
     id: str
+    stroke_length: int
+    stroke_limit: int
+    padding_steps: int
     max_steps: Optional[int]

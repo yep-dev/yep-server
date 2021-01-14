@@ -1,4 +1,1 @@
-from .settings import (
-    MachineThrustSettingsEdit,
-    MachineThrustSettingsDisplay,
-)
+from .settings import MachineThrustSettingsDisplay, MachineThrustSettingsEdit

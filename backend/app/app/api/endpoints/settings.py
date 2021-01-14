@@ -1,27 +1,25 @@
+import time
+
 from fastapi import APIRouter
+from starlette.requests import Request
 
 from app import schemas
 from app.crud.crud_settings import settings_crud
+from app.streams import commands
 
 router = APIRouter()
-
-INITIAL_SETTINGS = {
-    "machine-thrust": {
-        "name": "main",
-        "microsteps_per_rev": 400,
-        "wave_resolution": 20,
-        "stroke_length": 183,
-        "stroke_limit": 200,
-        "padding_steps": 60,
-        "max_steps": None,
-    }
-}
 
 
 @router.get("/{model}/{id}", response_model=schemas.MachineThrustSettingsDisplay)
 async def get_settings(model, id):
-    items = await settings_crud.get()
-    return {**items[0], "id": str(items[0]["_id"])}
+    item = await settings_crud.get(id)
+    print(item)
+    return {**item, "id": str(item["_id"])}
+
+
+@router.get("/{model}/")
+async def list_settings(model):
+    return await settings_crud.list()
 
 
 @router.post("/{model}/", response_model=schemas.MachineThrustSettingsDisplay)
@@ -31,18 +29,15 @@ async def create_settings(model: str, data: schemas.MachineThrustSettingsEdit):
 
 
 @router.put("/{model}/{id}")
-async def update_item(model: str, id: str, data: schemas.MachineThrustSettingsEdit):
+async def update_settings(
+    request: Request, model: str, id: str, data: schemas.MachineThrustSettingsEdit
+):
+    print(data)
     item = await settings_crud.update(model, id, data)
     if item:
+        redis = request.app.extra["redis"]
+        redis.xadd(
+            commands.command_all,
+            {"type": commands.update_settings, "time": time.time()},
+        )
         return "updated"
-
-
-# @router.delete("/")
-# def reset_settings(*, db: Session = Depends(deps.get_db)) -> Any:
-#     for model_name, data in INITIAL_SETTINGS.items():
-#         model = MODELS_MAPPING[model_name]
-#         db.query(model).delete()
-#         db.commit()
-#         crud.settings.create(db, model_name, data)
-#         db.commit()
-#
