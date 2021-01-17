@@ -1,9 +1,13 @@
 import aioredis
+import motor.motor_asyncio
+import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.api import api_router
 from app.core.config import settings
+
+MONGO_DETAILS = "mongodb://192.168.99.101:27017"
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -33,3 +37,13 @@ async def handle_startup():
     except ConnectionRefusedError:
         # logger.info(f"cannot connect to redis on {REDIS_HOST} {REDIS_PORT}")
         return
+
+
+@app.on_event("startup")
+async def startup_event():
+    db_client = motor.motor_asyncio.AsyncIOMotorClient(MONGO_DETAILS)
+    app.extra["db"] = db_client
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True, loop="asyncio")
