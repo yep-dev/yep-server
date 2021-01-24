@@ -1,8 +1,11 @@
+from urllib.request import Request
+
 import aioredis
 import motor.motor_asyncio
 import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import Response
 
 from app.api.api import api_router
 from app.core.config import settings
@@ -45,5 +48,18 @@ async def startup_event():
     app.extra["db"] = db_client
 
 
+async def catch_exceptions_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except Exception as e:
+        print(e)
+        # you probably want some kind of logging here
+        return Response("Internal server error", status_code=500)
+
+
+app.middleware("http")(catch_exceptions_middleware)
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=80, reload=True, loop="asyncio")
+    uvicorn.run(
+        "main:app", host="0.0.0.0", port=80, reload=True, loop="asyncio", debug=True
+    )

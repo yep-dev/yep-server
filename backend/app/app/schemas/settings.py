@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -6,7 +6,10 @@ from pydantic import BaseModel
 class ThrustSettingsEdit(BaseModel):
     name: Optional[str]
     microsteps_per_rev: Optional[int]
-    wave_resolution: Optional[int]
+    wave_resolution: Optional[int]  # todo: rename to tick_rate
+
+    tick_stroke_limit: Optional[int]
+    stroke_force_chart: Optional[List[int]]
 
     stroke_limit: Optional[int]
     max_stroke: Optional[int]
@@ -19,6 +22,7 @@ class ThrustSettings(ThrustSettingsEdit):
     stroke_limit: int
     max_stroke: int
     padding_mm: int
+    stroke_force_chart: List[int]
 
     # calibration
     max_steps: Optional[int]

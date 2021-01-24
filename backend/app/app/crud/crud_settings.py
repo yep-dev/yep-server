@@ -20,7 +20,7 @@ class CRUDSettings:
 
         return {**jsonable_encoder(item), **computed}
 
-    async def get(self, request, id):
+    async def get(self, request, id="default"):
         settings = request.app.extra["db"].data.get_collection("settings")
         return await self._get_item(settings, id)
 
@@ -42,11 +42,11 @@ class CRUDSettings:
         if item:
             data = jsonable_encoder(data)
             data = {k: v for k, v in data.items() if v is not None}
-            print(item)
-            updated_item = await settings.update_one(
-                {"_id": item["id"]}, {"$set": data}
+            result = await settings.update_one(
+                {"_id": ObjectId(item["id"])}, {"$set": data}
             )
-            return jsonable_encoder(updated_item.raw_result)
+            if result.matched_count:
+                return jsonable_encoder(await self._get_item(settings, id))
 
 
 settings_crud = CRUDSettings()

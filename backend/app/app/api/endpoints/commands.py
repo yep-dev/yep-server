@@ -1,6 +1,7 @@
 import time
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 from starlette.requests import Request
 
 from app.streams import commands
@@ -8,14 +9,11 @@ from app.streams import commands
 router = APIRouter()
 
 
-@router.post("/calibrate")
-async def calibrate(request: Request):
-    redis = request.app.extra["redis"]
-    # todo: check if stopped
-    redis.xadd(commands.command_all, {"type": commands.calibrate, "time": time.time()})
+class RunData(BaseModel):
+    type: str
 
 
-@router.post("/stop")
-async def stop(request: Request):
+@router.post("/run")
+async def run(request: Request, data: RunData):
     redis = request.app.extra["redis"]
-    redis.xadd(commands.command_all, {"type": commands.stop, "time": time.time()})
+    redis.xadd(commands.command_all, {"type": data.type, "time": time.time()})
