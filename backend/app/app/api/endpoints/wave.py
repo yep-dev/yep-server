@@ -49,17 +49,9 @@ async def build_wave(spec, tick_rate):
     length = spec.duration * tick_rate
     original_positions = types.get(spec.type, lambda: None)(length)
     min_index = original_positions.argmin()
-    original_positions = np.roll(original_positions[:-1], -min_index)
-    movements = np.gradient(original_positions)
-    # process movements here
-
-    # todo: remove
-    processed_positions = reverse_gradient(movements, original_positions)
-
+    positions = np.roll(original_positions[:-1], -min_index)
     return {
-        "originalPositions": original_positions.tolist()[:-1],
-        "processedPositions": processed_positions.tolist()[:-1],
-        "movements": movements.tolist()[:-1],  # todo: remove
+        "positions": positions.tolist()[:-1],
     }
 
 
@@ -83,9 +75,7 @@ async def wave(request: Request, spec: WaveSpec):
         {
             "type": commands.loop_wave,
             "time": time.time(),
-            "data": json.dumps(
-                [(point + 1) / 2 for point in data["originalPositions"]]
-            ),
+            "data": json.dumps([(point + 1) / 2 for point in data["positions"]]),
         },
     )
     return {"status": "success"}

@@ -29,14 +29,19 @@ async def create_settings(request: Request, model: str, data: ThrustSettingsEdit
 
 @router.put("/{model}/{id}", response_model=ThrustSettingsDisplay)
 async def update_settings(
-    request: Request, model: str, id: str, data: ThrustSettingsEdit
+    request: Request,
+    model: str,
+    id: str,
+    data: ThrustSettingsEdit,
+    machine: bool = False,
 ):
     print(data)
     item = await settings_crud.update(request, model, id, data)
     if item:
-        redis = request.app.extra["redis"]
-        redis.xadd(
-            commands.command_all,
-            {"type": commands.update_settings, "time": time.time()},
-        )
+        if not machine:
+            redis = request.app.extra["redis"]
+            redis.xadd(
+                commands.command_all,
+                {"type": commands.update_settings, "time": time.time()},
+            )
         return item
