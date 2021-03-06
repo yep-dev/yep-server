@@ -22,4 +22,4 @@ ARG INSTALL_JUPYTER=false
 RUN bash -c "if [ $INSTALL_JUPYTER == 'true' ] ; then pip install jupyterlab ; fi"
 
 COPY ./app /app
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/app

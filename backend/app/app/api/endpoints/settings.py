@@ -3,9 +3,9 @@ import time
 from fastapi import APIRouter
 from starlette.requests import Request
 
-from app.crud.crud_settings import settings_crud
-from app.schemas.settings import ThrustSettingsDisplay, ThrustSettingsEdit
-from app.streams import commands
+from crud.crud_settings import settings_crud
+from schemas.settings import ThrustSettingsDisplay, ThrustSettingsEdit
+from streams import commands
 
 router = APIRouter()
 

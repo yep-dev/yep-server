@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.requests import Request
 
-from app.streams import commands
+from streams import commands
 
 router = APIRouter()
 

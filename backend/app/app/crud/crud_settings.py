@@ -1,7 +1,7 @@
 from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
 
-from app.schemas.settings import ThrustSettings
+from schemas.settings import ThrustSettings
 
 # MODELS_MAPPING = {"machine-thrust": MachineThrustSettings}
 

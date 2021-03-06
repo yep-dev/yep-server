@@ -6,8 +6,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from starlette.requests import Request
 
-from app.crud.crud_settings import settings_crud
-from app.streams import commands
+from crud.crud_settings import settings_crud
+from streams import commands
 
 router = APIRouter()
 

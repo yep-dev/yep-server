@@ -9,17 +9,17 @@ router = APIRouter()
 
 
 class Data(BaseModel):
-    data: Any
-
+    points: Any
+    resolution: int = 100
 
 @router.post("/")
 def post_settings_curve(
     *,
     data: Data,
 ) -> Any:
-    data.data.append(0)
-    x = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-    xnew = np.linspace(0, 1000, 1000)
-    spline = make_interp_spline(np.array(x), np.array(data.data), k=2)
+    data.points.append(0)
+    x = [x * data.resolution / 10 for x in range(11)]
+    xnew = np.linspace(0, data.resolution, data.resolution)
+    spline = make_interp_spline(np.array(x), np.array(data.points), k=2)
     y_smooth = spline(xnew)
     return y_smooth.tolist()

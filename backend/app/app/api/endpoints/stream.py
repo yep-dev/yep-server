@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from starlette.websockets import WebSocket, WebSocketDisconnect
 from websockets.exceptions import ConnectionClosed
 
-from app.core.config import settings
+from core.config import settings
 
 router = APIRouter()
 
